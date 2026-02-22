@@ -1,0 +1,13 @@
+node_modules/
+.vercel/
+.claude/
+.bkit/
+*.png
+!assets/sv8_pack_kr.png
+!assets/card_back.png
+*.jpg
+!assets/sv8pt5_pack.jpg
+assets/cards/
+generate-placeholders.js
+analyze-rarity.js
+docs/

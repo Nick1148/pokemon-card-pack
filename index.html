@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta property="og:title" content="Pokemon Card Pack Simulator">
+  <meta property="og:description" content="Open Pokemon TCG card packs online! Real probability-based gacha simulator.">
+  <meta property="og:image" content="/assets/og_image.png">
+  <title>Pokemon Card Pack Simulator</title>
+  <meta name="description" content="Open Pokemon TCG card packs online! Real probability-based gacha simulator with Surging Sparks and Prismatic Evolutions.">
+  <link rel="stylesheet" href="css/style.css?v=15">
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0a0a1a">
+</head>
+
+<body>
+
+  <!-- Animated Background -->
+  <div class="bg-particles"></div>
+
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-logo">
+        <div class="logo-icon">⚡</div>
+        <h1>Pokemon TCG</h1>
+      </div>
+      <div class="header-stats">
+        <div class="stat-item user-gold">
+          <span>💰</span>
+          <span class="stat-value" id="userGold">10,000</span>
+        </div>
+        <div class="stat-item">
+          <span>📦</span>
+          <span>개봉: <span class="stat-value" id="totalPacks">0</span></span>
+        </div>
+        <div class="stat-item">
+          <span>🃏</span>
+          <span>수집: <span class="stat-value" id="totalCollected">0</span>/<span id="totalCards">250</span></span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="nav-tabs">
+      <button class="nav-tab active" data-tab="pack" id="tabPack">📦 팩 개봉</button>
+      <button class="nav-tab" data-tab="collection" id="tabCollection">📚 컬렉션</button>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Pack Section -->
+      <section class="pack-section" id="packSection">
+        <div class="pack-title" style="text-align:center;">
+          <div class="set-selector">
+            <button class="set-arrow-btn" id="prevSetBtn" aria-label="이전 세트">◀</button>
+            <div class="set-name-area">
+              <h2 id="packTitleText">초전브레이커</h2>
+              <span class="set-indicator" id="setNameText">sv8</span>
+            </div>
+            <button class="set-arrow-btn" id="nextSetBtn" aria-label="다음 세트">▶</button>
+          </div>
+          <p id="packSubtitleText">1팩 10장 | <span
+              style="color:var(--accent-gold);font-weight:bold;"><span id="packPriceText">1,500</span>G</span></p>
+        </div>
+
+        <!-- Pack Visual -->
+        <div class="pack-container" id="packContainer" role="button" tabindex="0" aria-label="카드팩 개봉하기">
+          <div class="pack-wrapper">
+            <div class="pack-front">
+              <img id="packCoverImage" class="pack-img" src="assets/sv8_pack_kr.png" alt="카드팩">
+              <div class="pack-foil-shine"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pack-buttons">
+          <button class="open-btn" id="openBtn">✨ 1팩 개봉 (<span id="price1">1,500</span>G)</button>
+          <button class="open-btn multi" id="open10Btn">📦×10 (<span id="price10">15,000</span>G)</button>
+          <button class="open-btn multi carton" id="open30Btn">📦×30 카톤 (<span id="price30">45,000</span>G)</button>
+          <button class="prob-btn" id="probBtn" title="확률 정보 보기">📊 확률 정보</button>
+        </div>
+
+        <!-- Pity Counter -->
+        <div class="pity-counter" id="pityCounter" style="display:none;">
+          <span>🔥 천장까지: <strong id="pityCount">0</strong>/50</span>
+        </div>
+
+        <!-- Pack Results (shown after opening) -->
+        <div class="pack-results" id="packResults" style="display:none;">
+          <h3>🎉 개봉 결과</h3>
+          <div class="results-grid" id="resultsGrid"></div>
+        </div>
+
+        <!-- Ad Banner Placeholder -->
+        <div class="ad-container" id="adBanner">
+          <div class="ad-placeholder">광고 영역</div>
+        </div>
+      </section>
+
+      <!-- Collection Section -->
+      <section class="collection-section" id="collectionSection">
+        <div id="readOnlyBanner"
+          style="display:none;background:var(--gradient-stellar);color:white;padding:15px;text-align:center;border-radius:12px;margin-bottom:20px;font-weight:bold;line-height:1.5;">
+          👀 다른 유저의 컬렉션을 구경 중입니다. (조회 전용)<br>
+          <button id="startMyOwnBtn"
+            style="margin-top:10px;padding:8px 20px;background:white;color:var(--accent-blue);border:none;border-radius:20px;font-weight:bold;cursor:pointer;">🚀
+            나도 카드 뽑으러 가기!</button>
+        </div>
+        <div class="collection-header" id="collectionHeader"
+          style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+          <button id="sellDupesBtn"
+            style="background:var(--accent-red);color:white;border:none;padding:8px 16px;border-radius:12px;font-weight:bold;cursor:pointer;">♻️
+            중복 판매</button>
+          <button id="shareCollectionBtn"
+            style="background:var(--accent-blue);color:white;border:none;padding:8px 16px;border-radius:12px;font-weight:bold;cursor:pointer;">🔗
+            자랑하기</button>
+        </div>
+        <div class="collection-stats" id="collectionStats"></div>
+        <div class="filter-bar" id="filterBar"></div>
+        <div class="collection-grid" id="collectionGrid"></div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <a href="terms.html">이용약관</a> |
+      <a href="privacy.html">개인정보처리방침</a> |
+      <a href="credits.html">크레딧</a>
+    </footer>
+  </div>
+
+  <!-- Card Reveal Overlay -->
+  <div class="card-reveal-overlay" id="cardRevealOverlay">
+    <div class="card-counter" id="cardCounter"></div>
+    <div class="card-display-area">
+      <div class="current-card" id="currentCardContainer">
+        <div class="card-inner" id="cardInner">
+          <div class="card-face card-back" id="cardBackFace"></div>
+          <div class="card-face card-front-face" id="cardFrontFace">
+            <img id="cardImage" src="" alt="카드">
+            <div class="holo-overlay" id="holoOverlay"></div>
+          </div>
+        </div>
+        <div class="rarity-badge" id="rarityBadge" style="display:none;"></div>
+      </div>
+    </div>
+    <div class="reveal-controls" id="revealControls">
+      <button class="reveal-btn primary" id="nextCardBtn">다음 카드 →</button>
+      <button class="reveal-btn" id="skipAllBtn">전체 보기 ⏩</button>
+    </div>
+  </div>
+
+  <!-- Light Burst Effect -->
+  <div class="light-burst" id="lightBurst"></div>
+
+  <!-- God Pack Alert -->
+  <div class="god-pack-alert" id="godPackAlert">
+    <h2>🌟 GOD PACK! 🌟</h2>
+    <p>축하합니다! 갓팩을 뽑았습니다!</p>
+  </div>
+
+  <!-- Screen Flash Effect -->
+  <div class="screen-flash" id="screenFlash"></div>
+
+  <!-- Card Zoom Modal -->
+  <div class="card-zoom-modal" id="cardZoomModal">
+    <img id="zoomImage" src="" alt="">
+    <div class="card-zoom-info">
+      <div class="card-name" id="zoomCardName"></div>
+      <div class="rarity-badge" id="zoomRarityBadge"></div>
+    </div>
+  </div>
+
+  <!-- Probability Info Modal -->
+  <div class="modal-overlay" id="probModal" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>📊 확률 정보</h3>
+        <button class="modal-close" id="probModalClose">&times;</button>
+      </div>
+      <div class="modal-body" id="probModalBody"></div>
+    </div>
+  </div>
+
+  <!-- Daily Bonus Modal -->
+  <div class="modal-overlay" id="dailyBonusModal" style="display:none;">
+    <div class="modal-content daily-bonus-content">
+      <h3>🎁 일일 출석 보상</h3>
+      <div class="daily-bonus-streak" id="dailyBonusStreak"></div>
+      <div class="daily-bonus-reward" id="dailyBonusReward"></div>
+      <button class="daily-bonus-claim-btn" id="dailyBonusClaimBtn">보상 받기!</button>
+    </div>
+  </div>
+
+  <!-- Achievement Toast -->
+  <div class="achievement-toast" id="achievementToast" style="display:none;">
+    <div class="achievement-icon">🏆</div>
+    <div class="achievement-text" id="achievementText"></div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Sound Toggle -->
+  <button class="sound-toggle" id="soundToggle" aria-label="소리 켜기/끄기">🔊</button>
+
+  <!-- Reward Ad Button -->
+  <button class="reward-ad-btn" id="rewardAdBtn" title="광고 보고 골드 받기">📺 +500G</button>
+
+  <!-- Scripts -->
+  <script src="js/cards.js?v=8"></script>
+  <script src="js/gacha.js?v=8"></script>
+  <script src="js/app.js?v=8"></script>
+  <script>
+    // Register Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+  </script>
+</body>
+
+</html>
