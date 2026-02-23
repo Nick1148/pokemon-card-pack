@@ -1,4 +1,4 @@
-const CACHE_NAME = 'stellar-dream-v2';
+const CACHE_NAME = 'pokemon-card-sim-v3';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',

@@ -1,7 +1,7 @@
 {
-  "name": "Stellar Dream - Card Pack Simulator",
-  "short_name": "Stellar Dream",
-  "description": "하이클래스팩 카드팩 개봉 시뮬레이터",
+  "name": "Pokemon Card Pack Simulator",
+  "short_name": "Pokemon TCG",
+  "description": "포켓몬 TCG 카드팩 개봉 시뮬레이터",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0a0a1a",
