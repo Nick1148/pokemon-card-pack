@@ -1990,3 +1990,242 @@ body {
   letter-spacing: 0.5px;
   margin-top: 2px;
 }
+
+/* ===== Cookie Consent Banner ===== */
+.cookie-consent {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--bg-secondary);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 16px 24px;
+  z-index: 5000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  backdrop-filter: blur(20px);
+}
+
+.cookie-consent-text p {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.cookie-consent-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.cookie-btn {
+  padding: 8px 24px;
+  border: none;
+  border-radius: 20px;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.cookie-btn.accept {
+  background: var(--gradient-stellar);
+  color: white;
+}
+
+.cookie-btn.accept:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.cookie-btn.reject {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.cookie-btn.reject:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text-primary);
+}
+
+/* ===== Daily Challenge Section ===== */
+.daily-challenge-section {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.challenge-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--accent-blue);
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.challenge-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.challenge-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--bg-glass);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  transition: var(--transition);
+}
+
+.challenge-card.completed {
+  border-color: var(--accent-green);
+  background: rgba(0, 230, 118, 0.05);
+}
+
+.challenge-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.challenge-icon {
+  font-size: 1.3rem;
+}
+
+.challenge-desc {
+  font-size: 0.85rem;
+  color: var(--text-primary);
+}
+
+.challenge-progress {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.challenge-reward {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  color: var(--accent-gold);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.challenge-card.completed .challenge-reward {
+  color: var(--accent-green);
+}
+
+/* ===== Event Banner ===== */
+.event-banner {
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.event-banner-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  border-radius: 14px;
+  color: white;
+  font-size: 0.9rem;
+  animation: eventPulse 3s ease-in-out infinite;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.event-icon {
+  font-size: 1.6rem;
+  flex-shrink: 0;
+}
+
+.event-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.event-info strong {
+  font-size: 1rem;
+}
+
+.event-info span {
+  font-size: 0.8rem;
+  opacity: 0.9;
+}
+
+@keyframes eventPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3); }
+  50% { transform: scale(1.01); box-shadow: 0 6px 24px rgba(255, 215, 0, 0.2); }
+}
+
+/* ===== Watch Ad to Open Pack Button ===== */
+.watch-ad-open-btn {
+  padding: 14px 36px;
+  border: 2px solid rgba(255, 215, 0, 0.4);
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 175, 25, 0.1));
+  color: var(--accent-gold);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 60px;
+  cursor: pointer;
+  transition: var(--transition);
+  animation: pulseGold 2s ease-in-out infinite;
+}
+
+.watch-ad-open-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(255, 215, 0, 0.3);
+  border-color: var(--accent-gold);
+}
+
+@keyframes pulseGold {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.2); }
+  50% { box-shadow: 0 0 20px 4px rgba(255, 215, 0, 0.15); }
+}
+
+/* ===== Donate Link in Footer ===== */
+.donate-link {
+  color: var(--accent-gold) !important;
+  font-weight: 600;
+}
+
+.donate-link:hover {
+  color: #fff3b0 !important;
+}
+
+/* ===== Ad Container (updated for real ads) ===== */
+.ad-container ins {
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .cookie-consent {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+    padding: 14px 16px;
+  }
+  .challenge-card {
+    padding: 10px 12px;
+  }
+  .challenge-desc {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .cookie-consent-text p {
+    font-size: 0.78rem;
+  }
+}

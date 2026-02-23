@@ -1,4 +1,4 @@
-const CACHE_NAME = 'stellar-dream-v1';
+const CACHE_NAME = 'stellar-dream-v2';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -37,6 +37,22 @@ self.addEventListener('fetch', (event) => {
 
   // Skip non-GET requests
   if (event.request.method !== 'GET') return;
+
+  // Never cache ad/analytics domains - let them go straight to network
+  const adDomains = [
+    'googlesyndication.com',
+    'googleads.g.doubleclick.net',
+    'doubleclick.net',
+    'google-analytics.com',
+    'googletagmanager.com',
+    'pagead2.googlesyndication.com',
+    'adservice.google.com',
+    'fundingchoicesmessages.google.com',
+    'tpc.googlesyndication.com',
+  ];
+  if (adDomains.some(d => url.hostname.includes(d))) {
+    return; // Let browser handle directly
+  }
 
   // Network-first for API calls
   if (url.pathname.startsWith('/api/')) {

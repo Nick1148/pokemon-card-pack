@@ -2,6 +2,105 @@
  * Pokemon Card Pack Simulator - Main App Logic
  */
 
+// ===== Consent & Ad/Analytics Management =====
+
+const ConsentManager = {
+    STORAGE_KEY: 'cookie_consent',
+
+    getConsent() {
+        return localStorage.getItem(this.STORAGE_KEY); // 'accepted' | 'rejected' | null
+    },
+
+    setConsent(value) {
+        localStorage.setItem(this.STORAGE_KEY, value);
+    },
+
+    hasConsented() {
+        return this.getConsent() === 'accepted';
+    },
+
+    hasDecided() {
+        return this.getConsent() !== null;
+    },
+
+    /** Load AdSense + GA4 scripts dynamically after consent */
+    loadAdScripts() {
+        if (!this.hasConsented()) return;
+
+        // Google AdSense (replace ca-pub-XXXXXXXXXXXXXXXX with real ID)
+        if (!document.getElementById('adsense-script')) {
+            const adsScript = document.createElement('script');
+            adsScript.id = 'adsense-script';
+            adsScript.async = true;
+            adsScript.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX';
+            adsScript.crossOrigin = 'anonymous';
+            document.head.appendChild(adsScript);
+
+            // Push ad units after script loads
+            adsScript.onload = () => {
+                document.querySelectorAll('.adsbygoogle').forEach(() => {
+                    try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) { /* ignore */ }
+                });
+            };
+        }
+
+        // Ad Placement API preload
+        if (window.adConfig) {
+            adConfig({ preloadAdBreaks: 'on' });
+        }
+
+        // Google Analytics 4 (replace G-XXXXXXXXXX with real ID)
+        if (!document.getElementById('ga4-script')) {
+            const gaScript = document.createElement('script');
+            gaScript.id = 'ga4-script';
+            gaScript.async = true;
+            gaScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX';
+            document.head.appendChild(gaScript);
+
+            gaScript.onload = () => {
+                window.dataLayer = window.dataLayer || [];
+                window.gtag = function() { dataLayer.push(arguments); };
+                gtag('js', new Date());
+                gtag('config', 'G-XXXXXXXXXX');
+            };
+        }
+    },
+
+    /** Show consent banner if user hasn't decided yet */
+    showBannerIfNeeded() {
+        if (this.hasDecided()) {
+            if (this.hasConsented()) this.loadAdScripts();
+            return;
+        }
+
+        const banner = document.getElementById('cookieConsent');
+        if (!banner) return;
+        banner.style.display = 'flex';
+
+        document.getElementById('cookieAccept').addEventListener('click', () => {
+            this.setConsent('accepted');
+            banner.style.display = 'none';
+            this.loadAdScripts();
+        });
+
+        document.getElementById('cookieReject').addEventListener('click', () => {
+            this.setConsent('rejected');
+            banner.style.display = 'none';
+        });
+    }
+};
+
+// ===== GA4 Event Tracking Helper =====
+function trackEvent(action, label, value) {
+    if (window.gtag) {
+        gtag('event', action, {
+            event_category: 'engagement',
+            event_label: label,
+            value: value
+        });
+    }
+}
+
 // ===== Utility: XSS Prevention =====
 function escapeHtml(str) {
     const div = document.createElement('div');
@@ -25,6 +124,50 @@ const ACHIEVEMENTS = {
 
 // ===== Daily Bonus Config =====
 const DAILY_BONUS_REWARDS = [500, 800, 1000, 1500, 2000, 3000, 5000];
+
+// ===== Event Pack Definitions =====
+const EVENT_PACKS = [
+    {
+        id: 'weekly_boost',
+        name: '주간 확률 부스트',
+        nameKo: '주간 확률 UP',
+        icon: '🎰',
+        description: 'SAR/MUR 확률 2배!',
+        // Active on weekends (Sat-Sun)
+        isActive: () => {
+            const day = new Date().getDay();
+            return day === 0 || day === 6;
+        },
+        priceMultiplier: 1.5,
+        bannerColor: 'linear-gradient(135deg, #f59e0b, #ef4444)',
+    },
+    {
+        id: 'new_month',
+        name: 'Monthly Special',
+        nameKo: '월초 스페셜',
+        icon: '🌟',
+        description: '첫째주 특별 팩! 골드 보상 2배',
+        isActive: () => {
+            return new Date().getDate() <= 7;
+        },
+        priceMultiplier: 1,
+        goldBonusMultiplier: 2,
+        bannerColor: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
+    },
+];
+
+// ===== Daily Challenge Definitions =====
+const DAILY_CHALLENGES = [
+    { id: 'open_3', desc: '3팩 개봉하기', icon: '📦', target: 3, type: 'packs', reward: 1000 },
+    { id: 'open_5', desc: '5팩 개봉하기', icon: '📦', target: 5, type: 'packs', reward: 2000 },
+    { id: 'open_10', desc: '10팩 개봉하기', icon: '🔥', target: 10, type: 'packs', reward: 3500 },
+    { id: 'get_rr', desc: 'RR 이상 카드 뽑기', icon: '⭐', target: 1, type: 'rarity_RR+', reward: 1500 },
+    { id: 'get_sr', desc: 'SR 이상 카드 뽑기', icon: '💎', target: 1, type: 'rarity_SR+', reward: 2500 },
+    { id: 'sell_dupes', desc: '중복 카드 판매하기', icon: '♻️', target: 1, type: 'sell', reward: 800 },
+    { id: 'collect_5', desc: '새 카드 5종 수집', icon: '🃏', target: 5, type: 'new_cards', reward: 2000 },
+    { id: 'multi10', desc: '10팩 연속 개봉', icon: '🎯', target: 1, type: 'multi10', reward: 1500 },
+    { id: 'watch_ad', desc: '광고 2회 시청', icon: '📺', target: 2, type: 'ad_watch', reward: 1000 },
+];
 
 class CardPackSimulator {
     constructor() {
@@ -55,6 +198,8 @@ class CardPackSimulator {
         this.pityCounter = this.collection.pityCounter || 0;
         this.dailyBonus = this.collection.dailyBonus || { lastClaimed: null, streak: 0 };
 
+        this.singlePackCounter = 0; // Track single pack opens for interstitial ads
+
         this.initElements();
         this.initEvents();
         this.initSounds();
@@ -68,10 +213,17 @@ class CardPackSimulator {
 
         this.renderCollection();
 
-        // Check daily bonus
+        // Check active events & daily bonus
         if (!this.isReadOnly) {
+            this.activeEvents = [];
+            this.checkActiveEvents();
             this.checkDailyBonus();
+            this.initDailyChallenges();
+            this.updateWatchAdButton();
         }
+
+        // Cookie consent & ad loading
+        ConsentManager.showBannerIfNeeded();
     }
 
     // ===== Share Data Validation =====
@@ -187,6 +339,13 @@ class CardPackSimulator {
             price1: document.getElementById('price1'),
             price10: document.getElementById('price10'),
             price30: document.getElementById('price30'),
+            // Daily Challenge
+            dailyChallengeSection: document.getElementById('dailyChallengeSection'),
+            challengeGrid: document.getElementById('challengeGrid'),
+            // Watch Ad to Open Pack
+            watchAdOpenBtn: document.getElementById('watchAdOpenBtn'),
+            // Event Banner
+            eventBanner: document.getElementById('eventBanner'),
         };
     }
 
@@ -285,6 +444,11 @@ class CardPackSimulator {
         }
         if (this.els.open30Btn) {
             this.els.open30Btn.addEventListener('click', () => this.openMultiplePacks(30));
+        }
+
+        // Watch Ad to Open Pack
+        if (this.els.watchAdOpenBtn) {
+            this.els.watchAdOpenBtn.addEventListener('click', () => this.watchAdAndOpenPack());
         }
     }
 
@@ -491,15 +655,17 @@ class CardPackSimulator {
     async startOpenPack() {
         if (this.isOpening) return;
 
-        const price = CARD_SET.price;
+        const price = this.activeEvents && this.activeEvents.length > 0 ? this.getEffectivePrice() : CARD_SET.price;
         if (this.userGold < price) {
             this.showToast('💰 골드가 부족합니다! 중복 판매 또는 광고를 이용하세요.');
+            this.updateWatchAdButton();
             return;
         }
 
         this.userGold -= price;
         this.updateStats();
         this.saveCollection();
+        this.updateWatchAdButton();
 
         this.isOpening = true;
         this.playSound('click');
@@ -662,15 +828,39 @@ class CardPackSimulator {
     finishPack() {
         this.isOpening = false;
         this.totalPacksOpened++;
+        this.singlePackCounter++;
 
         this.els.cardRevealOverlay.classList.remove('active');
         this.els.nextCardBtn.textContent = '다음 카드 →';
 
         this.saveCollection();
         this.updateStats();
-        this.showPackResults();
+        this.updateWatchAdButton();
 
-        // Check achievements after pack
+        // Track event
+        trackEvent('pack_open', CURRENT_SET_ID, 1);
+
+        // Update daily challenges
+        this.updateChallengeProgress('packs', 1);
+
+        // Check rarity-based challenges from current pack
+        if (this.currentPack) {
+            const hasRR = this.currentPack.some(c => ['RR', 'AR', 'SR', 'SAR', 'MUR'].includes(c.rarity));
+            const hasSR = this.currentPack.some(c => ['SR', 'SAR', 'MUR'].includes(c.rarity));
+            if (hasRR) this.updateChallengeProgress('rarity_RR+', 1);
+            if (hasSR) this.updateChallengeProgress('rarity_SR+', 1);
+        }
+
+        // Show interstitial ad every 5 single packs
+        if (this.singlePackCounter % 5 === 0 && ConsentManager.hasConsented() && window.adBreak) {
+            adBreak({
+                type: 'next',
+                name: 'pack-interstitial',
+                adBreakDone: () => { /* ad done */ }
+            });
+        }
+
+        this.showPackResults();
         this.checkPackAchievements();
     }
 
@@ -776,10 +966,16 @@ class CardPackSimulator {
 
     addToCollection(card) {
         const key = this.collectionKey(card.id);
-        if (!this.collection.cards[key]) {
+        const isNew = !this.collection.cards[key];
+        if (isNew) {
             this.collection.cards[key] = { count: 0, firstPack: this.totalPacksOpened + 1 };
         }
         this.collection.cards[key].count++;
+
+        // Track new card for daily challenge
+        if (isNew) {
+            this.updateChallengeProgress('new_cards', 1);
+        }
 
         // Check rarity achievements
         this.checkRarityAchievement(card.rarity);
@@ -814,7 +1010,7 @@ class CardPackSimulator {
         this.playSound('click');
         let totalEarned = 0;
         let soldCount = 0;
-        const sellPrices = { C: 10, U: 30, R: 100, RR: 300, AR: 400, SR: 1000, SAR: 5000, MUR: 10000 };
+        const sellPrices = { C: 5, U: 15, R: 50, RR: 150, AR: 200, SR: 500, SAR: 2500, MUR: 5000 };
 
         for (const [key, data] of Object.entries(this.collection.cards)) {
             // key format: "setId:cardId"
@@ -837,9 +1033,11 @@ class CardPackSimulator {
             this.userGold += totalEarned;
             this.saveCollection();
             this.updateStats();
+            this.updateWatchAdButton();
             this.renderCollection();
             this.showToast(`♻️ 중복 카드 ${soldCount}장 판매 → ${totalEarned.toLocaleString()}G 획득!`);
             this.playSound('packOpen');
+            this.updateChallengeProgress('sell', 1);
         } else {
             this.showToast('판매할 중복 카드가 없습니다.');
         }
@@ -1040,7 +1238,9 @@ class CardPackSimulator {
 
     claimDailyBonus() {
         const today = new Date().toISOString().split('T')[0];
-        const reward = this._pendingDailyReward;
+        const baseReward = this._pendingDailyReward;
+        const bonusMultiplier = this.getGoldBonusMultiplier();
+        const reward = Math.round(baseReward * bonusMultiplier);
 
         this.userGold += reward;
         this.dailyBonus.lastClaimed = today;
@@ -1048,9 +1248,11 @@ class CardPackSimulator {
 
         this.saveCollection();
         this.updateStats();
+        this.updateWatchAdButton();
         this.els.dailyBonusModal.style.display = 'none';
         this.showToast(`🎁 일일 보상 ${reward.toLocaleString()}G 획득!`);
         this.playSound('achievement');
+        trackEvent('daily_return', `streak_${this.dailyBonus.streak}`, reward);
     }
 
     // ===== Achievement System =====
@@ -1085,6 +1287,8 @@ class CardPackSimulator {
         this.saveCollection();
         this.updateStats();
 
+        trackEvent('achievement_unlocked', key, ach.gold);
+
         // Show achievement toast
         if (this.els.achievementToast && this.els.achievementText) {
             this.els.achievementText.innerHTML = `${ach.icon} ${escapeHtml(ach.name)}<br><small>${escapeHtml(ach.desc)} (+${ach.gold.toLocaleString()}G)</small>`;
@@ -1098,17 +1302,127 @@ class CardPackSimulator {
 
     // ===== Reward Ad =====
 
+    getRewardAdData() {
+        const today = new Date().toISOString().split('T')[0];
+        const data = JSON.parse(localStorage.getItem('rewardAdData') || '{}');
+        if (data.date !== today) return { date: today, count: 0 };
+        return data;
+    }
+
     showRewardAd() {
         this.playSound('click');
-        // Placeholder: In production, integrate with ad SDK
-        this.showToast('📺 광고 시청 중... (데모 모드)');
-        setTimeout(() => {
-            this.userGold += 500;
-            this.saveCollection();
-            this.updateStats();
-            this.showToast('✅ 광고 보상 500G 획득!');
-            this.playSound('achievement');
-        }, 2000);
+
+        // Check daily limit
+        const adData = this.getRewardAdData();
+        if (adData.count >= 10) {
+            this.showToast('오늘의 광고 보상 한도(10회)에 도달했습니다.');
+            return;
+        }
+
+        // Try Ad Placement API first
+        if (ConsentManager.hasConsented() && window.adBreak) {
+            this.showToast('📺 광고를 불러오는 중...');
+            adBreak({
+                type: 'reward',
+                name: 'gold-reward',
+                beforeReward: (showAdFn) => { showAdFn(); },
+                adViewed: () => { this.grantAdReward(); },
+                adDismissed: () => {
+                    this.showToast('광고를 끝까지 시청해야 보상을 받을 수 있습니다.');
+                },
+                adBreakDone: (placementInfo) => {
+                    // If no ad fill, grant reward as fallback
+                    if (placementInfo.breakStatus === 'notReady' || placementInfo.breakStatus === 'frequencyCapped') {
+                        this.grantAdReward();
+                    }
+                }
+            });
+        } else {
+            // Fallback: no ad SDK available, simulate with delay
+            this.showToast('📺 광고 시청 중...');
+            setTimeout(() => { this.grantAdReward(); }, 2000);
+        }
+    }
+
+    grantAdReward() {
+        this.userGold += 500;
+
+        // Update daily counter
+        const adData = this.getRewardAdData();
+        adData.count++;
+        localStorage.setItem('rewardAdData', JSON.stringify(adData));
+
+        this.saveCollection();
+        this.updateStats();
+        this.updateWatchAdButton();
+        this.showToast(`✅ 광고 보상 500G 획득! (오늘 ${adData.count}/10)`);
+        this.playSound('achievement');
+
+        // Track & update challenges
+        trackEvent('ad_reward_watched', 'reward_500g', 500);
+        this.updateChallengeProgress('ad_watch', 1);
+    }
+
+    // ===== Watch Ad to Open Pack =====
+
+    updateWatchAdButton() {
+        if (this.els.watchAdOpenBtn) {
+            const effectivePrice = this.activeEvents && this.activeEvents.length > 0 ? this.getEffectivePrice() : CARD_SET.price;
+            const needsGold = this.userGold < effectivePrice;
+            const adData = this.getRewardAdData();
+            const canWatchAd = adData.count < 10;
+            this.els.watchAdOpenBtn.style.display = (needsGold && canWatchAd) ? 'block' : 'none';
+        }
+    }
+
+    watchAdAndOpenPack() {
+        this.playSound('click');
+        const adData = this.getRewardAdData();
+        if (adData.count >= 10) {
+            this.showToast('오늘의 광고 한도에 도달했습니다.');
+            return;
+        }
+
+        const packPrice = this.activeEvents && this.activeEvents.length > 0 ? this.getEffectivePrice() : CARD_SET.price;
+
+        if (ConsentManager.hasConsented() && window.adBreak) {
+            adBreak({
+                type: 'reward',
+                name: 'free-pack',
+                beforeReward: (showAdFn) => { showAdFn(); },
+                adViewed: () => {
+                    adData.count++;
+                    localStorage.setItem('rewardAdData', JSON.stringify(adData));
+                    trackEvent('ad_reward_watched', 'free_pack', 1);
+                    this.updateChallengeProgress('ad_watch', 1);
+                    this.userGold += packPrice;
+                    this.updateStats();
+                    this.startOpenPack();
+                },
+                adDismissed: () => {
+                    this.showToast('광고를 끝까지 시청해야 팩을 열 수 있습니다.');
+                },
+                adBreakDone: (placementInfo) => {
+                    if (placementInfo.breakStatus === 'notReady' || placementInfo.breakStatus === 'frequencyCapped') {
+                        adData.count++;
+                        localStorage.setItem('rewardAdData', JSON.stringify(adData));
+                        this.userGold += packPrice;
+                        this.updateStats();
+                        this.startOpenPack();
+                    }
+                }
+            });
+        } else {
+            // Fallback
+            this.showToast('📺 광고 시청 중...');
+            setTimeout(() => {
+                adData.count++;
+                localStorage.setItem('rewardAdData', JSON.stringify(adData));
+                this.userGold += packPrice;
+                this.updateStats();
+                this.startOpenPack();
+            }, 2000);
+        }
     }
 
     // ===== Multi-Pack Opening =====
@@ -1116,7 +1430,8 @@ class CardPackSimulator {
     openMultiplePacks(count) {
         if (this.isOpening) return;
 
-        const price = CARD_SET.price * count;
+        const unitPrice = this.activeEvents && this.activeEvents.length > 0 ? this.getEffectivePrice() : CARD_SET.price;
+        const price = unitPrice * count;
         if (this.userGold < price) {
             this.showToast(`💰 골드가 부족합니다! ${price.toLocaleString()}G 필요`);
             return;
@@ -1152,6 +1467,30 @@ class CardPackSimulator {
         this.updatePityDisplay();
         this.saveCollection();
         this.updateStats();
+        this.updateWatchAdButton();
+
+        // Track events
+        trackEvent('pack_open', `multi_${count}_${CURRENT_SET_ID}`, count);
+
+        // Update daily challenges
+        this.updateChallengeProgress('packs', count);
+        if (count >= 10) this.updateChallengeProgress('multi10', 1);
+
+        // Check rarity for challenges
+        const hasRR = allCards.some(c => ['RR', 'AR', 'SR', 'SAR', 'MUR'].includes(c.rarity));
+        const hasSR = allCards.some(c => ['SR', 'SAR', 'MUR'].includes(c.rarity));
+        if (hasRR) this.updateChallengeProgress('rarity_RR+', 1);
+        if (hasSR) this.updateChallengeProgress('rarity_SR+', 1);
+
+        // Interstitial ad after multi-pack opening
+        if (ConsentManager.hasConsented() && window.adBreak) {
+            adBreak({
+                type: 'next',
+                name: 'multipack-interstitial',
+                adBreakDone: () => { /* done */ }
+            });
+        }
+
         this.showMultiPackResults(allCards, count, godPackCount);
         this.checkPackAchievements();
 
@@ -1259,6 +1598,57 @@ class CardPackSimulator {
         }
     }
 
+    // ===== Event System =====
+
+    checkActiveEvents() {
+        this.activeEvents = EVENT_PACKS.filter(e => e.isActive());
+        this.renderEventBanner();
+        this.updatePackUI();
+    }
+
+    renderEventBanner() {
+        if (!this.els.eventBanner) return;
+
+        if (this.activeEvents.length === 0) {
+            this.els.eventBanner.style.display = 'none';
+            return;
+        }
+
+        this.els.eventBanner.style.display = 'block';
+        this.els.eventBanner.innerHTML = this.activeEvents.map(event => `
+            <div class="event-banner-item" style="background:${event.bannerColor};">
+                <span class="event-icon">${event.icon}</span>
+                <div class="event-info">
+                    <strong>${escapeHtml(event.nameKo || event.name)}</strong>
+                    <span>${escapeHtml(event.description)}</span>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    /** Get current effective pack price (base price * event multiplier) */
+    getEffectivePrice() {
+        const basePrice = CARD_SET.price;
+        let multiplier = 1;
+        for (const event of this.activeEvents) {
+            if (event.priceMultiplier) {
+                multiplier = Math.max(multiplier, event.priceMultiplier);
+            }
+        }
+        return Math.round(basePrice * multiplier);
+    }
+
+    /** Get gold bonus multiplier from active events */
+    getGoldBonusMultiplier() {
+        let multiplier = 1;
+        for (const event of this.activeEvents) {
+            if (event.goldBonusMultiplier) {
+                multiplier = Math.max(multiplier, event.goldBonusMultiplier);
+            }
+        }
+        return multiplier;
+    }
+
     // ===== Set Switching =====
 
     cycleSet(direction) {
@@ -1283,9 +1673,19 @@ class CardPackSimulator {
         if (this.els.packTitleText) {
             this.els.packTitleText.textContent = displayName;
         }
+
+        // Use event-adjusted price
+        const effectivePrice = this.activeEvents && this.activeEvents.length > 0
+            ? this.getEffectivePrice()
+            : CARD_SET.price;
+        const hasEventPrice = effectivePrice !== CARD_SET.price;
+
         if (this.els.packSubtitleText) {
+            const priceHtml = hasEventPrice
+                ? `<s style="opacity:0.5;">${CARD_SET.price.toLocaleString()}</s> <span style="color:#ef4444;">${effectivePrice.toLocaleString()}</span>`
+                : effectivePrice.toLocaleString();
             this.els.packSubtitleText.innerHTML =
-                `1팩 ${CARD_SET.cardsPerPack}장 | <span style="color:var(--accent-gold);font-weight:bold;"><span id="packPriceText">${CARD_SET.price.toLocaleString()}</span>G</span>`;
+                `1팩 ${CARD_SET.cardsPerPack}장 | <span style="color:var(--accent-gold);font-weight:bold;"><span id="packPriceText">${priceHtml}</span>G</span>`;
         }
         if (this.els.setNameText) {
             this.els.setNameText.textContent = CARD_SET.id;
@@ -1294,11 +1694,94 @@ class CardPackSimulator {
         if (this.els.packCoverImage) {
             this.els.packCoverImage.src = CARD_SET.packImage || '';
         }
-        // Multi-pack prices
-        const p = CARD_SET.price;
+        // Multi-pack prices (with event multiplier)
+        const p = effectivePrice;
         if (this.els.price1) this.els.price1.textContent = p.toLocaleString();
         if (this.els.price10) this.els.price10.textContent = (p * 10).toLocaleString();
         if (this.els.price30) this.els.price30.textContent = (p * 30).toLocaleString();
+    }
+
+    // ===== Daily Challenge System =====
+
+    initDailyChallenges() {
+        const today = new Date().toISOString().split('T')[0];
+        let challengeData = JSON.parse(localStorage.getItem('dailyChallenges') || '{}');
+
+        // Reset if new day
+        if (challengeData.date !== today) {
+            // Pick 3 random challenges
+            const shuffled = [...DAILY_CHALLENGES].sort(() => Math.random() - 0.5);
+            const selected = shuffled.slice(0, 3);
+            challengeData = {
+                date: today,
+                challenges: selected.map(c => ({
+                    ...c,
+                    progress: 0,
+                    completed: false,
+                    claimed: false,
+                }))
+            };
+            localStorage.setItem('dailyChallenges', JSON.stringify(challengeData));
+        }
+
+        this.dailyChallenges = challengeData;
+        this.renderDailyChallenges();
+    }
+
+    renderDailyChallenges() {
+        if (!this.els.dailyChallengeSection || !this.els.challengeGrid) return;
+        if (!this.dailyChallenges || !this.dailyChallenges.challenges) return;
+
+        this.els.dailyChallengeSection.style.display = 'block';
+        const challenges = this.dailyChallenges.challenges;
+
+        this.els.challengeGrid.innerHTML = challenges.map((ch, i) => {
+            const done = ch.completed;
+            const progressText = ch.target > 1 ? `${Math.min(ch.progress, ch.target)}/${ch.target}` : '';
+            return `
+                <div class="challenge-card ${done ? 'completed' : ''}" data-index="${i}">
+                    <div class="challenge-info">
+                        <span class="challenge-icon">${ch.icon}</span>
+                        <div>
+                            <div class="challenge-desc">${escapeHtml(ch.desc)}</div>
+                            ${progressText ? `<div class="challenge-progress">${progressText}</div>` : ''}
+                        </div>
+                    </div>
+                    <span class="challenge-reward">${done ? '✅ 완료' : `+${ch.reward.toLocaleString()}G`}</span>
+                </div>
+            `;
+        }).join('');
+    }
+
+    updateChallengeProgress(type, amount) {
+        if (!this.dailyChallenges || !this.dailyChallenges.challenges) return;
+        let changed = false;
+
+        for (const ch of this.dailyChallenges.challenges) {
+            if (ch.completed || ch.claimed) continue;
+            if (ch.type !== type) continue;
+
+            ch.progress = (ch.progress || 0) + amount;
+            if (ch.progress >= ch.target) {
+                ch.completed = true;
+                ch.claimed = true;
+                const bonusMultiplier = this.getGoldBonusMultiplier();
+                const finalReward = Math.round(ch.reward * bonusMultiplier);
+                this.userGold += finalReward;
+                this.saveCollection();
+                this.updateStats();
+                const bonusText = bonusMultiplier > 1 ? ` (x${bonusMultiplier} 이벤트!)` : '';
+                this.showToast(`🎯 도전 완료! "${ch.desc}" → +${finalReward.toLocaleString()}G${bonusText}`);
+                this.playSound('achievement');
+                trackEvent('challenge_completed', ch.id, finalReward);
+            }
+            changed = true;
+        }
+
+        if (changed) {
+            localStorage.setItem('dailyChallenges', JSON.stringify(this.dailyChallenges));
+            this.renderDailyChallenges();
+        }
     }
 
     // ===== Utilities =====

@@ -9,11 +9,18 @@
   <meta property="og:image" content="/assets/og_image.png">
   <title>Pokemon Card Pack Simulator</title>
   <meta name="description" content="Open Pokemon TCG card packs online! Real probability-based gacha simulator with Surging Sparks and Prismatic Evolutions.">
-  <link rel="stylesheet" href="css/style.css?v=15">
+  <link rel="stylesheet" href="css/style.css?v=16">
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#0a0a1a">
+
+  <!-- Google Ad Placement API (for rewarded + interstitial ads) -->
+  <!-- Loaded immediately; actual ad calls gated by consent -->
+  <script>
+    window.adConfig = window.adConfig || function(o) { (adConfig.q = adConfig.q || []).push(o); };
+    window.adBreak = window.adBreak || function(o) { (adBreak.q = adBreak.q || []).push(o); };
+  </script>
 </head>
 
 <body>
@@ -54,6 +61,9 @@
     <main class="main-content">
       <!-- Pack Section -->
       <section class="pack-section" id="packSection">
+        <!-- Event Banner -->
+        <div class="event-banner" id="eventBanner" style="display:none;"></div>
+
         <div class="pack-title" style="text-align:center;">
           <div class="set-selector">
             <button class="set-arrow-btn" id="prevSetBtn" aria-label="이전 세트">◀</button>
@@ -95,11 +105,25 @@
           <div class="results-grid" id="resultsGrid"></div>
         </div>
 
-        <!-- Ad Banner Placeholder -->
-        <div class="ad-container" id="adBanner">
-          <div class="ad-placeholder">광고 영역</div>
+        <!-- Daily Challenge -->
+        <div class="daily-challenge-section" id="dailyChallengeSection" style="display:none;">
+          <h3 class="challenge-title">🎯 일일 도전</h3>
+          <div class="challenge-grid" id="challengeGrid"></div>
         </div>
+
+        <!-- Ad Banner Slot A: After pack results -->
+        <div class="ad-container" id="adSlotA">
+          <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot="XXXXXXXXXX" data-ad-format="auto" data-full-width-responsive="true"></ins>
+        </div>
+
+        <!-- Watch Ad to Open Pack (shown when gold insufficient) -->
+        <button class="watch-ad-open-btn" id="watchAdOpenBtn" style="display:none;">📺 광고 보고 1팩 무료 개봉!</button>
       </section>
+
+      <!-- Ad Banner Slot B: Collection top -->
+      <div class="ad-container" id="adSlotB" style="display:none;">
+        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot="XXXXXXXXXX" data-ad-format="auto" data-full-width-responsive="true"></ins>
+      </div>
 
       <!-- Collection Section -->
       <section class="collection-section" id="collectionSection">
@@ -125,8 +149,14 @@
       </section>
     </main>
 
+    <!-- Ad Banner Slot C: Before footer -->
+    <div class="ad-container" id="adSlotC">
+      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot="XXXXXXXXXX" data-ad-format="auto" data-full-width-responsive="true"></ins>
+    </div>
+
     <!-- Footer -->
     <footer class="app-footer">
+      <a href="https://buymeacoffee.com/YOUR_ID" target="_blank" rel="noopener" class="donate-link">☕ 후원하기</a> |
       <a href="terms.html">이용약관</a> |
       <a href="privacy.html">개인정보처리방침</a> |
       <a href="credits.html">크레딧</a>
@@ -211,10 +241,21 @@
   <!-- Reward Ad Button -->
   <button class="reward-ad-btn" id="rewardAdBtn" title="광고 보고 골드 받기">📺 +500G</button>
 
+  <!-- Cookie Consent Banner -->
+  <div class="cookie-consent" id="cookieConsent" style="display:none;">
+    <div class="cookie-consent-text">
+      <p>이 사이트는 더 나은 경험을 위해 광고 및 분석 쿠키를 사용합니다.</p>
+    </div>
+    <div class="cookie-consent-actions">
+      <button class="cookie-btn accept" id="cookieAccept">동의</button>
+      <button class="cookie-btn reject" id="cookieReject">거부</button>
+    </div>
+  </div>
+
   <!-- Scripts -->
-  <script src="js/cards.js?v=8"></script>
-  <script src="js/gacha.js?v=8"></script>
-  <script src="js/app.js?v=8"></script>
+  <script src="js/cards.js?v=10"></script>
+  <script src="js/gacha.js?v=10"></script>
+  <script src="js/app.js?v=10"></script>
   <script>
     // Register Service Worker
     if ('serviceWorker' in navigator) {
