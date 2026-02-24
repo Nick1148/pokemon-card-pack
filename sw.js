@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pokemon-card-sim-v3';
+const CACHE_NAME = 'pokemon-card-sim-v4';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -40,15 +40,10 @@ self.addEventListener('fetch', (event) => {
 
   // Never cache ad/analytics domains - let them go straight to network
   const adDomains = [
-    'googlesyndication.com',
-    'googleads.g.doubleclick.net',
-    'doubleclick.net',
+    'adsterra.com',
+    'adsterratech.com',
     'google-analytics.com',
     'googletagmanager.com',
-    'pagead2.googlesyndication.com',
-    'adservice.google.com',
-    'fundingchoicesmessages.google.com',
-    'tpc.googlesyndication.com',
   ];
   if (adDomains.some(d => url.hostname.includes(d))) {
     return; // Let browser handle directly

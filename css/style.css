@@ -2168,6 +2168,64 @@ body {
   50% { transform: scale(1.01); box-shadow: 0 6px 24px rgba(255, 215, 0, 0.2); }
 }
 
+/* ===== Reward Timer Overlay ===== */
+.reward-timer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(6px);
+}
+
+.reward-timer-box {
+  background: linear-gradient(135deg, #1a1a3e, #0d0d2b);
+  border: 2px solid rgba(255, 215, 0, 0.4);
+  border-radius: 24px;
+  padding: 40px 50px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.reward-timer-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--accent-gold);
+  margin-bottom: 20px;
+}
+
+.reward-timer-countdown {
+  font-size: 4rem;
+  font-weight: 900;
+  color: white;
+  margin-bottom: 20px;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+}
+
+.reward-timer-bar {
+  width: 200px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  margin: 0 auto 16px;
+  overflow: hidden;
+}
+
+.reward-timer-progress {
+  height: 100%;
+  background: var(--accent-gold);
+  border-radius: 4px;
+  transition: width 1s linear;
+}
+
+.reward-timer-hint {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
 /* ===== Watch Ad to Open Pack Button ===== */
 .watch-ad-open-btn {
   padding: 14px 36px;
@@ -2204,9 +2262,9 @@ body {
   color: #fff3b0 !important;
 }
 
-/* ===== Ad Container (updated for real ads) ===== */
-.ad-container ins {
-  display: block;
+/* ===== Ad Container (Adsterra banners) ===== */
+.adsterra-banner {
+  min-height: 90px;
 }
 
 @media (max-width: 768px) {

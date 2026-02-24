@@ -23,31 +23,18 @@ const ConsentManager = {
         return this.getConsent() !== null;
     },
 
-    /** Load AdSense + GA4 scripts dynamically after consent */
+    /** Load Adsterra + GA4 scripts dynamically after consent */
     loadAdScripts() {
         if (!this.hasConsented()) return;
 
-        // Google AdSense (replace ca-pub-XXXXXXXXXXXXXXXX with real ID)
-        if (!document.getElementById('adsense-script')) {
-            const adsScript = document.createElement('script');
-            adsScript.id = 'adsense-script';
-            adsScript.async = true;
-            adsScript.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX';
-            adsScript.crossOrigin = 'anonymous';
-            document.head.appendChild(adsScript);
+        // Adsterra Banner Ads
+        // TODO: Replace these placeholder scripts with your actual Adsterra ad codes
+        // After Adsterra approval, paste your banner ad scripts into each slot div
+        // The scripts will be injected into #adsterraSlotA, #adsterraSlotB, #adsterraSlotC
 
-            // Push ad units after script loads
-            adsScript.onload = () => {
-                document.querySelectorAll('.adsbygoogle').forEach(() => {
-                    try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) { /* ignore */ }
-                });
-            };
-        }
-
-        // Ad Placement API preload
-        if (window.adConfig) {
-            adConfig({ preloadAdBreaks: 'on' });
-        }
+        // Adsterra Social Bar (high CPM in-page push)
+        // TODO: Replace with your Adsterra Social Bar script
+        // Example: <script>(function(d,z,s){s.src='//'+d+'/'+z;...})(domain, zoneId, script);</script>
 
         // Google Analytics 4 (replace G-XXXXXXXXXX with real ID)
         if (!document.getElementById('ga4-script')) {
@@ -851,15 +838,6 @@ class CardPackSimulator {
             if (hasSR) this.updateChallengeProgress('rarity_SR+', 1);
         }
 
-        // Show interstitial ad every 5 single packs
-        if (this.singlePackCounter % 5 === 0 && ConsentManager.hasConsented() && window.adBreak) {
-            adBreak({
-                type: 'next',
-                name: 'pack-interstitial',
-                adBreakDone: () => { /* ad done */ }
-            });
-        }
-
         this.showPackResults();
         this.checkPackAchievements();
     }
@@ -1319,29 +1297,35 @@ class CardPackSimulator {
             return;
         }
 
-        // Try Ad Placement API first
-        if (ConsentManager.hasConsented() && window.adBreak) {
-            this.showToast('📺 광고를 불러오는 중...');
-            adBreak({
-                type: 'reward',
-                name: 'gold-reward',
-                beforeReward: (showAdFn) => { showAdFn(); },
-                adViewed: () => { this.grantAdReward(); },
-                adDismissed: () => {
-                    this.showToast('광고를 끝까지 시청해야 보상을 받을 수 있습니다.');
-                },
-                adBreakDone: (placementInfo) => {
-                    // If no ad fill, grant reward as fallback
-                    if (placementInfo.breakStatus === 'notReady' || placementInfo.breakStatus === 'frequencyCapped') {
-                        this.grantAdReward();
-                    }
-                }
-            });
-        } else {
-            // Fallback: no ad SDK available, simulate with delay
-            this.showToast('📺 광고 시청 중...');
-            setTimeout(() => { this.grantAdReward(); }, 2000);
-        }
+        // Show reward timer overlay (5 second countdown)
+        this.showRewardTimer(() => {
+            this.grantAdReward();
+        });
+    }
+
+    /** Show a 5-second countdown timer overlay, then call onComplete */
+    showRewardTimer(onComplete) {
+        const overlay = document.getElementById('rewardTimerOverlay');
+        const countEl = document.getElementById('rewardTimerCount');
+        const progressEl = document.getElementById('rewardTimerProgress');
+        if (!overlay) { onComplete(); return; }
+
+        overlay.style.display = 'flex';
+        let remaining = 5;
+        countEl.textContent = remaining;
+        progressEl.style.width = '0%';
+
+        const interval = setInterval(() => {
+            remaining--;
+            countEl.textContent = remaining;
+            progressEl.style.width = ((5 - remaining) / 5 * 100) + '%';
+
+            if (remaining <= 0) {
+                clearInterval(interval);
+                overlay.style.display = 'none';
+                onComplete();
+            }
+        }, 1000);
     }
 
     grantAdReward() {
@@ -1355,7 +1339,7 @@ class CardPackSimulator {
         this.saveCollection();
         this.updateStats();
         this.updateWatchAdButton();
-        this.showToast(`✅ 광고 보상 500G 획득! (오늘 ${adData.count}/10)`);
+        this.showToast(`✅ 보상 500G 획득! (오늘 ${adData.count}/10)`);
         this.playSound('achievement');
 
         // Track & update challenges
@@ -1385,44 +1369,15 @@ class CardPackSimulator {
 
         const packPrice = this.activeEvents && this.activeEvents.length > 0 ? this.getEffectivePrice() : CARD_SET.price;
 
-        if (ConsentManager.hasConsented() && window.adBreak) {
-            adBreak({
-                type: 'reward',
-                name: 'free-pack',
-                beforeReward: (showAdFn) => { showAdFn(); },
-                adViewed: () => {
-                    adData.count++;
-                    localStorage.setItem('rewardAdData', JSON.stringify(adData));
-                    trackEvent('ad_reward_watched', 'free_pack', 1);
-                    this.updateChallengeProgress('ad_watch', 1);
-                    this.userGold += packPrice;
-                    this.updateStats();
-                    this.startOpenPack();
-                },
-                adDismissed: () => {
-                    this.showToast('광고를 끝까지 시청해야 팩을 열 수 있습니다.');
-                },
-                adBreakDone: (placementInfo) => {
-                    if (placementInfo.breakStatus === 'notReady' || placementInfo.breakStatus === 'frequencyCapped') {
-                        adData.count++;
-                        localStorage.setItem('rewardAdData', JSON.stringify(adData));
-                        this.userGold += packPrice;
-                        this.updateStats();
-                        this.startOpenPack();
-                    }
-                }
-            });
-        } else {
-            // Fallback
-            this.showToast('📺 광고 시청 중...');
-            setTimeout(() => {
-                adData.count++;
-                localStorage.setItem('rewardAdData', JSON.stringify(adData));
-                this.userGold += packPrice;
-                this.updateStats();
-                this.startOpenPack();
-            }, 2000);
-        }
+        this.showRewardTimer(() => {
+            adData.count++;
+            localStorage.setItem('rewardAdData', JSON.stringify(adData));
+            trackEvent('ad_reward_watched', 'free_pack', 1);
+            this.updateChallengeProgress('ad_watch', 1);
+            this.userGold += packPrice;
+            this.updateStats();
+            this.startOpenPack();
+        });
     }
 
     // ===== Multi-Pack Opening =====
@@ -1481,15 +1436,6 @@ class CardPackSimulator {
         const hasSR = allCards.some(c => ['SR', 'SAR', 'MUR'].includes(c.rarity));
         if (hasRR) this.updateChallengeProgress('rarity_RR+', 1);
         if (hasSR) this.updateChallengeProgress('rarity_SR+', 1);
-
-        // Interstitial ad after multi-pack opening
-        if (ConsentManager.hasConsented() && window.adBreak) {
-            adBreak({
-                type: 'next',
-                name: 'multipack-interstitial',
-                adBreakDone: () => { /* done */ }
-            });
-        }
 
         this.showMultiPackResults(allCards, count, godPackCount);
         this.checkPackAchievements();

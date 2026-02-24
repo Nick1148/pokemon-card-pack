@@ -9,18 +9,13 @@
   <meta property="og:image" content="/assets/og_image.png">
   <title>Pokemon Card Pack Simulator</title>
   <meta name="description" content="Open Pokemon TCG card packs online! Real probability-based gacha simulator with Surging Sparks and Prismatic Evolutions.">
-  <link rel="stylesheet" href="css/style.css?v=16">
+  <link rel="stylesheet" href="css/style.css?v=17">
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#0a0a1a">
 
-  <!-- Google Ad Placement API (for rewarded + interstitial ads) -->
-  <!-- Loaded immediately; actual ad calls gated by consent -->
-  <script>
-    window.adConfig = window.adConfig || function(o) { (adConfig.q = adConfig.q || []).push(o); };
-    window.adBreak = window.adBreak || function(o) { (adBreak.q = adBreak.q || []).push(o); };
-  </script>
+  <!-- Adsterra ads loaded dynamically after cookie consent via ConsentManager -->
 </head>
 
 <body>
@@ -111,18 +106,19 @@
           <div class="challenge-grid" id="challengeGrid"></div>
         </div>
 
-        <!-- Ad Banner Slot A: After pack results -->
+        <!-- Ad Banner Slot A: After pack results (Adsterra) -->
         <div class="ad-container" id="adSlotA">
-          <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot="XXXXXXXXXX" data-ad-format="auto" data-full-width-responsive="true"></ins>
+          <!-- Adsterra banner: Replace with your Adsterra ad code after approval -->
+          <div class="adsterra-banner" id="adsterraSlotA"></div>
         </div>
 
         <!-- Watch Ad to Open Pack (shown when gold insufficient) -->
         <button class="watch-ad-open-btn" id="watchAdOpenBtn" style="display:none;">📺 광고 보고 1팩 무료 개봉!</button>
       </section>
 
-      <!-- Ad Banner Slot B: Collection top -->
-      <div class="ad-container" id="adSlotB" style="display:none;">
-        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot="XXXXXXXXXX" data-ad-format="auto" data-full-width-responsive="true"></ins>
+      <!-- Ad Banner Slot B: Collection top (Adsterra) -->
+      <div class="ad-container" id="adSlotB">
+        <div class="adsterra-banner" id="adsterraSlotB"></div>
       </div>
 
       <!-- Collection Section -->
@@ -149,9 +145,9 @@
       </section>
     </main>
 
-    <!-- Ad Banner Slot C: Before footer -->
+    <!-- Ad Banner Slot C: Before footer (Adsterra) -->
     <div class="ad-container" id="adSlotC">
-      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot="XXXXXXXXXX" data-ad-format="auto" data-full-width-responsive="true"></ins>
+      <div class="adsterra-banner" id="adsterraSlotC"></div>
     </div>
 
     <!-- Footer -->
@@ -240,7 +236,17 @@
   <button class="sound-toggle" id="soundToggle" aria-label="소리 켜기/끄기">🔊</button>
 
   <!-- Reward Ad Button -->
-  <button class="reward-ad-btn" id="rewardAdBtn" title="광고 보고 골드 받기">📺 +500G</button>
+  <button class="reward-ad-btn" id="rewardAdBtn" title="골드 받기">📺 +500G</button>
+
+  <!-- Reward Timer Overlay -->
+  <div class="reward-timer-overlay" id="rewardTimerOverlay" style="display:none;">
+    <div class="reward-timer-box">
+      <div class="reward-timer-title">💰 보상 획득 중...</div>
+      <div class="reward-timer-countdown" id="rewardTimerCount">5</div>
+      <div class="reward-timer-bar"><div class="reward-timer-progress" id="rewardTimerProgress"></div></div>
+      <p class="reward-timer-hint">잠시만 기다려주세요!</p>
+    </div>
+  </div>
 
   <!-- Cookie Consent Banner -->
   <div class="cookie-consent" id="cookieConsent" style="display:none;">
@@ -254,9 +260,12 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/cards.js?v=10"></script>
-  <script src="js/gacha.js?v=10"></script>
-  <script src="js/app.js?v=10"></script>
+  <!-- Adsterra Social Bar: loaded dynamically after consent -->
+  <div id="adsterraSocialBar"></div>
+
+  <script src="js/cards.js?v=11"></script>
+  <script src="js/gacha.js?v=11"></script>
+  <script src="js/app.js?v=11"></script>
   <script>
     // Register Service Worker
     if ('serviceWorker' in navigator) {
