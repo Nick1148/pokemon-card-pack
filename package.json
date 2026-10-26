@@ -1,0 +1,16 @@
+{
+  "name": "pokemon-card-pack",
+  "version": "1.0.0",
+  "private": true,
+  "description": "포켓몬 TCG 카드팩 개봉 시뮬레이터 (정적 사이트, 빌드 없음)",
+  "scripts": {
+    "check": "node scripts/check.js",
+    "test": "npm run check && node --test \"tests/*.test.js\"",
+    "test:e2e": "node tests/e2e/smoke.js",
+    "generate:cards": "node fetch-pokemon-cards.js",
+    "start": "python3 -m http.server 8080"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

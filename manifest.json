@@ -1,6 +1,6 @@
 {
-  "name": "Pokemon Card Pack Simulator",
-  "short_name": "Pokemon TCG",
+  "name": "포켓몬 카드팩 개봉 시뮬레이터",
+  "short_name": "포켓몬 카드팩",
   "description": "포켓몬 TCG 카드팩 개봉 시뮬레이터",
   "start_url": "/",
   "display": "standalone",
@@ -17,6 +17,19 @@
       "src": "/assets/icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
+    },
+    {
+      "src": "/assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
     }
-  ]
+  ],
+  "lang": "ko",
+  "scope": "/"
 }

@@ -5,8 +5,12 @@ node_modules/
 *.png
 !assets/sv8_pack_kr.png
 !assets/card_back.png
+!assets/*_pack.png
+!assets/icon-*.png
+!assets/og_image.png
 *.jpg
 !assets/sv8pt5_pack.jpg
+!assets/*_pack.jpg
 assets/cards/
 generate-placeholders.js
 analyze-rarity.js
